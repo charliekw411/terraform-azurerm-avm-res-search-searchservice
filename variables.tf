@@ -1,11 +1,14 @@
-variable "enable_telemetry" {
-  type        = bool
-  default     = true
-  description = <<DESCRIPTION
-This variable controls whether or not telemetry is enabled for the module.
-For more information see <https://aka.ms/avm/telemetryinfo>.
-If it is set to false, then no telemetry will be collected.
-DESCRIPTION
+variable "name" {
+  type        = string
+  description = "The name of the this resource."
+
+  validation {
+    condition     = can(regex("TODO determine REGEX", var.name))
+    error_message = "The name must be TODO."
+    # TODO remove the example below once complete:
+    #condition     = can(regex("^[a-z0-9]{5,50}$", var.name))
+    #error_message = "The name must be between 5 and 50 characters long and can only contain lowercase letters and numbers."
+  }
 }
 
 # This is required for most resource modules
@@ -14,22 +17,28 @@ variable "resource_group_name" {
   description = "The resource group where the resources will be deployed."
 }
 
-variable "location" {
+variable "search_service_location" {
   type        = string
-  description = "Azure region where the resource should be deployed.  If null, the location will be inferred from the resource group location."
-  default     = null
+  description = "(Required) The Azure Region where the Search Service should exist. Changing this forces a new Search Service to be created."
+  nullable    = false
 }
 
-variable "name" {
+variable "search_service_name" {
   type        = string
-  description = "The name of the this resource."
-  validation {
-    condition     = can(regex("TODO determine REGEX", var.name))
-    error_message = "The name must be TODO."
-    # TODO remove the example below once complete:
-    #condition     = can(regex("^[a-z0-9]{5,50}$", var.name))
-    #error_message = "The name must be between 5 and 50 characters long and can only contain lowercase letters and numbers."
-  }
+  description = "(Required) The Name which should be used for this Search Service. Changing this forces a new Search Service to be created."
+  nullable    = false
+}
+
+variable "search_service_resource_group_name" {
+  type        = string
+  description = "(Required) The name of the Resource Group where the Search Service should exist. Changing this forces a new Search Service to be created."
+  nullable    = false
+}
+
+variable "search_service_sku" {
+  type        = string
+  description = "(Required) The SKU which should be used for this Search Service. Possible values include `basic`, `free`, `standard`, `standard2`, `standard3`, `storage_optimized_l1` and `storage_optimized_l2`. Changing this forces a new Search Service to be created."
+  nullable    = false
 }
 
 # required AVM interfaces
@@ -42,8 +51,8 @@ variable "customer_managed_key" {
     key_version                        = optional(string, null)
     user_assigned_identity_resource_id = optional(string, null)
   })
-  description = "Customer managed keys that should be associated with the resource."
   default     = {}
+  description = "Customer managed keys that should be associated with the resource."
 }
 
 variable "diagnostic_settings" {
@@ -59,22 +68,7 @@ variable "diagnostic_settings" {
     event_hub_name                           = optional(string, null)
     marketplace_partner_resource_id          = optional(string, null)
   }))
-  default  = {}
-  nullable = false
-
-  validation {
-    condition     = alltrue([for _, v in var.diagnostic_settings : contains(["Dedicated", "AzureDiagnostics"], v.log_analytics_destination_type)])
-    error_message = "Log analytics destination type must be one of: 'Dedicated', 'AzureDiagnostics'."
-  }
-  validation {
-    condition = alltrue(
-      [
-        for _, v in var.diagnostic_settings :
-        v.workspace_resource_id != null || v.storage_account_resource_id != null || v.event_hub_authorization_rule_resource_id != null || v.marketplace_partner_resource_id != null
-      ]
-    )
-    error_message = "At least one of `workspace_resource_id`, `storage_account_resource_id`, `marketplace_partner_resource_id`, or `event_hub_authorization_rule_resource_id`, must be set."
-  }
+  default     = {}
   description = <<DESCRIPTION
 A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
@@ -89,6 +83,37 @@ A map of diagnostic settings to create on the Key Vault. The map key is delibera
 - `event_hub_name` - (Optional) The name of the event hub. If none is specified, the default event hub will be selected.
 - `marketplace_partner_resource_id` - (Optional) The full ARM resource ID of the Marketplace resource to which you would like to send Diagnostic LogsLogs.
 DESCRIPTION
+  nullable    = false
+
+  validation {
+    condition     = alltrue([for _, v in var.diagnostic_settings : contains(["Dedicated", "AzureDiagnostics"], v.log_analytics_destination_type)])
+    error_message = "Log analytics destination type must be one of: 'Dedicated', 'AzureDiagnostics'."
+  }
+  validation {
+    condition = alltrue(
+      [
+        for _, v in var.diagnostic_settings :
+        v.workspace_resource_id != null || v.storage_account_resource_id != null || v.event_hub_authorization_rule_resource_id != null || v.marketplace_partner_resource_id != null
+      ]
+    )
+    error_message = "At least one of `workspace_resource_id`, `storage_account_resource_id`, `marketplace_partner_resource_id`, or `event_hub_authorization_rule_resource_id`, must be set."
+  }
+}
+
+variable "enable_telemetry" {
+  type        = bool
+  default     = true
+  description = <<DESCRIPTION
+This variable controls whether or not telemetry is enabled for the module.
+For more information see <https://aka.ms/avm/telemetryinfo>.
+If it is set to false, then no telemetry will be collected.
+DESCRIPTION
+}
+
+variable "location" {
+  type        = string
+  default     = null
+  description = "Azure region where the resource should be deployed.  If null, the location will be inferred from the resource group location."
 }
 
 variable "lock" {
@@ -96,9 +121,10 @@ variable "lock" {
     name = optional(string, null)
     kind = optional(string, "None")
   })
-  description = "The lock level to apply. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`."
   default     = {}
+  description = "The lock level to apply. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`."
   nullable    = false
+
   validation {
     condition     = contains(["CanNotDelete", "ReadOnly", "None"], var.lock.kind)
     error_message = "The lock level must be one of: 'None', 'CanNotDelete', or 'ReadOnly'."
@@ -111,8 +137,8 @@ variable "managed_identities" {
     system_assigned            = optional(bool, false)
     user_assigned_resource_ids = optional(set(string), [])
   })
-  description = "Managed identities to be created for the resource."
   default     = {}
+  description = "Managed identities to be created for the resource."
 }
 
 variable "private_endpoints" {
@@ -192,10 +218,95 @@ A map of role assignments to create on this resource. The map key is deliberatel
 DESCRIPTION
 }
 
+variable "search_service_allowed_ips" {
+  type        = set(string)
+  default     = null
+  description = "(Optional) Specifies a list of inbound IPv4 or CIDRs that are allowed to access the Search Service. If the incoming IP request is from an IP address which is not included in the `allowed_ips` it will be blocked by the Search Services firewall."
+}
+
+variable "search_service_authentication_failure_mode" {
+  type        = string
+  default     = null
+  description = "(Optional) Specifies the response that the Search Service should return for requests that fail authentication. Possible values include `http401WithBearerChallenge` or `http403`."
+}
+
+variable "search_service_customer_managed_key_enforcement_enabled" {
+  type        = bool
+  default     = null
+  description = "(Optional) Specifies whether the Search Service should enforce that non-customer resources are encrypted. Defaults to `false`."
+}
+
+variable "search_service_hosting_mode" {
+  type        = string
+  default     = null
+  description = "(Optional) Specifies the Hosting Mode, which allows for High Density partitions (that allow for up to 1000 indexes) should be supported. Possible values are `highDensity` or `default`. Defaults to `default`. Changing this forces a new Search Service to be created."
+}
+
+variable "search_service_identity" {
+  type = object({
+    type = string
+  })
+  default     = null
+  description = <<-EOT
+ - `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Search Service. The only possible value is `SystemAssigned`.
+EOT
+}
+
+variable "search_service_local_authentication_enabled" {
+  type        = bool
+  default     = null
+  description = "(Optional) Specifies whether the Search Service allows authenticating using API Keys? Defaults to `true`."
+}
+
+variable "search_service_partition_count" {
+  type        = number
+  default     = null
+  description = "(Optional) Specifies the number of partitions which should be created. This field cannot be set when using a `free` or `basic` sku ([see the Microsoft documentation](https://learn.microsoft.com/azure/search/search-sku-tier)). Possible values include `1`, `2`, `3`, `4`, `6`, or `12`. Defaults to `1`."
+}
+
+variable "search_service_public_network_access_enabled" {
+  type        = bool
+  default     = null
+  description = "(Optional) Specifies whether Public Network Access is allowed for this resource. Defaults to `true`."
+}
+
+variable "search_service_replica_count" {
+  type        = number
+  default     = null
+  description = "(Optional) Specifies the number of Replica's which should be created for this Search Service. This field cannot be set when using a `free` sku ([see the Microsoft documentation](https://learn.microsoft.com/azure/search/search-sku-tier))."
+}
+
+variable "search_service_semantic_search_sku" {
+  type        = string
+  default     = null
+  description = "(Optional) Specifies the Semantic Search SKU which should be used for this Search Service. Possible values include `free` and `standard`."
+}
+
+variable "search_service_tags" {
+  type        = map(string)
+  default     = null
+  description = "(Optional) Specifies a mapping of tags which should be assigned to this Search Service."
+}
+
+variable "search_service_timeouts" {
+  type = object({
+    create = optional(string)
+    delete = optional(string)
+    read   = optional(string)
+    update = optional(string)
+  })
+  default     = null
+  description = <<-EOT
+ - `create` - (Defaults to 60 minutes) Used when creating the Search Service.
+ - `delete` - (Defaults to 60 minutes) Used when deleting the Search Service.
+ - `read` - (Defaults to 5 minutes) Used when retrieving the Search Service.
+ - `update` - (Defaults to 60 minutes) Used when updating the Search Service.
+EOT
+}
+
 # tflint-ignore: terraform_unused_declarations
 variable "tags" {
   type        = map(any)
-  description = "The map of tags to be applied to the resource"
   default     = {}
+  description = "The map of tags to be applied to the resource"
 }
-
