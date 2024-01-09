@@ -1,4 +1,4 @@
-# terraform-azurerm-avm-template
+# terraform-azurerm-avm-search-service
 
 This is a template repo for Terraform Azure Verified Modules.
 

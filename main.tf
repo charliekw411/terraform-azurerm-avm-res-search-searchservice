@@ -4,11 +4,11 @@ data "azurerm_resource_group" "parent" {
   name  = var.resource_group_name
 }
 
-resource "azurerm_TODO_the_resource_for_this_module" "this" {
+resource "azurerm_search_service" "this" {
   name                = var.name # calling code must supply the name
   resource_group_name = var.resource_group_name
   location            = coalesce(var.location, local.resource_group_location)
-  # etc
+  # TODO: Add variables for search service
 }
 
 # required AVM resources interfaces
