@@ -5,10 +5,10 @@ data "azurerm_resource_group" "parent" {
 }
 
 resource "azurerm_search_service" "this" {
-  name                = var.name # calling code must supply the name
-  resource_group_name = var.resource_group_name
-  location            = coalesce(var.location, local.resource_group_location)
-  # TODO: Add variables for search service
+  name                = "example-resource"
+  resource_group_name = var.existing_parent_resource.name # TODO: check if this is defined 
+  location                      = try(data.azurerm_resource_group.parent[0].location, var.location) # TODO: does this need a try block if theres only one resource?
+  sku                 = "standard"
 }
 
 # required AVM resources interfaces
