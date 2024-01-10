@@ -47,13 +47,10 @@ resource "azurerm_resource_group" "this" {
 # Do not specify location here due to the randomization above.
 # Leaving location as `null` will cause the module to use the resource group location
 # with a data source.
-# TODO: Add correct source and module parameters here
-module "test" {
-  source = "../../"
-  sku = "" 
-  # source             = "Azure/avm-<res/ptn>-<name>/azurerm"
-  # ...
-  enable_telemetry    = var.enable_telemetry # see variables.tf
-  name                = ""                   # TODO update with module.naming.<RESOURCE_TYPE>.name_unique
+module "search-service" {
+  source              = "../../"
+  name                = module.naming.search_service.name_unique
   resource_group_name = azurerm_resource_group.this.name
+  location            = azurerm_resource_group.this.location
+  sku                 = "standard"
 }
