@@ -34,13 +34,21 @@ resource "azurerm_resource_group" "this" {
   location = "australiaeast"
 }
 
+resource "azurerm_search_service" "this" {
+  location            = azurerm_resource_group.this.location
+  name                = module.naming.search_service.name_unique
+  resource_group_name = azurerm_resource_group.this.name
+  sku                 = "standard"
+
+}
+
 module "search-service" {
-  # 'source' parameter can be updated for broader resuse after AVM completion
   source              = "../../"
   name                = module.naming.search_service.name_unique
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
   sku                 = "standard"
 }
+
 
 

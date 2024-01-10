@@ -1,15 +1,7 @@
-# TODO: insert resources here.
 data "azurerm_resource_group" "parent" {
   count = var.location == null ? 1 : 0
 
   name = var.resource_group_name
-}
-
-resource "azurerm_search_service" "this" {
-  location            = try(data.azurerm_resource_group.parent[0].location, var.location) # TODO: does this need a try block if theres only one resource?
-  name                = "example-resource"
-  resource_group_name = var.existing_parent_resource.name # TODO: check if this is defined 
-  sku                 = "standard"
 }
 
 # required AVM resources interfaces
@@ -66,4 +58,3 @@ resource "azurerm_search_service" "this" {
     }
   }
 }
-
