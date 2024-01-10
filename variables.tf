@@ -102,7 +102,7 @@ DESCRIPTION
 variable "location" {
   type        = string
   description = "(Required) The Azure Region where the Search Service should exist. Changing this forces a new Search Service to be created."
-  nullable    = false
+  default     = null
 }
 
 variable "name" {
