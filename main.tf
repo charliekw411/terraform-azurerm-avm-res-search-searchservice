@@ -18,14 +18,14 @@ resource "azurerm_management_lock" "this" {
 
   lock_level = var.lock.kind
   name       = coalesce(var.lock.name, "lock-${var.name}")
-  scope      = azurerm_TODO_resource.this.id
+  scope      = azurerm_search_service.this.id
 }
 
 resource "azurerm_role_assignment" "this" {
   for_each = var.role_assignments
 
   principal_id                           = each.value.principal_id
-  scope                                  = azurerm_TODO_resource.this.id
+  scope                                  = azurerm_search_service.this.id
   condition                              = each.value.condition
   condition_version                      = each.value.condition_version
   delegated_managed_identity_resource_id = each.value.delegated_managed_identity_resource_id
@@ -33,30 +33,31 @@ resource "azurerm_role_assignment" "this" {
   role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
   skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
 }
+
 resource "azurerm_search_service" "this" {
-  location                                 = var.search_service_location
-  name                                     = var.search_service_name
-  resource_group_name                      = var.search_service_resource_group_name
-  sku                                      = var.search_service_sku
-  allowed_ips                              = var.search_service_allowed_ips
-  authentication_failure_mode              = var.search_service_authentication_failure_mode
-  customer_managed_key_enforcement_enabled = var.search_service_customer_managed_key_enforcement_enabled
-  hosting_mode                             = var.search_service_hosting_mode
-  local_authentication_enabled             = var.search_service_local_authentication_enabled
-  partition_count                          = var.search_service_partition_count
-  public_network_access_enabled            = var.search_service_public_network_access_enabled
-  replica_count                            = var.search_service_replica_count
-  semantic_search_sku                      = var.search_service_semantic_search_sku
-  tags                                     = var.search_service_tags
+  location                                 = var.location
+  name                                     = var.name
+  resource_group_name                      = var.resource_group_name
+  sku                                      = var.sku
+  allowed_ips                              = var.allowed_ips
+  authentication_failure_mode              = var.authentication_failure_mode
+  customer_managed_key_enforcement_enabled = var.customer_managed_key_enforcement_enabled
+  hosting_mode                             = var.hosting_mode
+  local_authentication_enabled             = var.local_authentication_enabled
+  partition_count                          = var.partition_count
+  public_network_access_enabled            = var.public_network_access_enabled
+  replica_count                            = var.replica_count
+  semantic_search_sku                      = var.semantic_search_sku
+  tags                                     = var.tags
 
   dynamic "identity" {
-    for_each = var.search_service_identity == null ? [] : [var.search_service_identity]
+    for_each = var.identity == null ? [] : [var.identity]
     content {
       type = identity.value.type
     }
   }
   dynamic "timeouts" {
-    for_each = var.search_service_timeouts == null ? [] : [var.search_service_timeouts]
+    for_each = var.timeouts == null ? [] : [var.timeouts]
     content {
       create = timeouts.value.create
       delete = timeouts.value.delete
