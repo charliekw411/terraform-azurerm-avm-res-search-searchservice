@@ -8,6 +8,20 @@ If it is set to false, then no telemetry will be collected.
 DESCRIPTION
 }
 
+variable "lock" {
+  type = object({
+    name = optional(string, null)
+    kind = optional(string, "None")
+  })
+  description = "The lock level to apply. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`."
+  default     = {}
+  nullable    = false
+  validation {
+    condition     = contains(["CanNotDelete", "ReadOnly", "None"], var.lock.kind)
+    error_message = "The lock level must be one of: 'None', 'CanNotDelete', or 'ReadOnly'."
+  }
+}
+
 variable "private_endpoints" {
   type = map(object({
     name = optional(string, null)
