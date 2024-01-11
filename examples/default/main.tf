@@ -51,6 +51,5 @@ module "search-service" {
   source              = "../../"
   name                = module.naming.search_service.name_unique
   resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
   sku                 = "standard"
 }
