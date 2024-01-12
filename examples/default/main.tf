@@ -23,9 +23,13 @@ module "naming" {
 }
 
 # This is required for resource modules
-resource "azurerm_resource_group" "this" {
-  name     = module.naming.resource_group.name_unique
-  location = "australiaeast"
+# resource "azurerm_resource_group" "this" {
+#   name     = module.naming.resource_group.name_unique
+#   location = "australiaeast"
+# }
+
+data "azurerm_resource_group" "this" {
+  name = "rg-charliekakewhite"
 }
 
 # This is the module call
@@ -35,6 +39,6 @@ resource "azurerm_resource_group" "this" {
 module "search-service" {
   source              = "../../"
   name                = module.naming.search_service.name_unique
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = data.azurerm_resource_group.this.name
   sku                 = "standard"
 }
