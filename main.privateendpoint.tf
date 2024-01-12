@@ -12,8 +12,8 @@ resource "azurerm_private_endpoint" "this" {
   private_service_connection {
     is_manual_connection           = false
     name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "pse-${var.name}"
-    private_connection_resource_id = azurerm_TODO.this.id
-    subresource_names              = ["TODO subresource name, see https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview#private-link-resource"]
+    private_connection_resource_id = azurerm_search_service.this.id
+    subresource_names              = ["searchService"]
   }
   dynamic "ip_configuration" {
     for_each = each.value.ip_configurations
@@ -21,8 +21,8 @@ resource "azurerm_private_endpoint" "this" {
     content {
       name               = ip_configuration.value.name
       private_ip_address = ip_configuration.value.private_ip_address
-      member_name        = "TODO subresource name"
-      subresource_name   = "TODO subresource name"
+      member_name        = "searchService"
+      subresource_name   = "searchService"
     }
   }
   dynamic "private_dns_zone_group" {
