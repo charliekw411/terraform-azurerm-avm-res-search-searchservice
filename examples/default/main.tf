@@ -33,4 +33,8 @@ module "search_service" {
   name                = module.naming.search_service.name_unique
   resource_group_name = azurerm_resource_group.this.name
   sku                 = "standard"
+  # A system assigned identity must be provided even though the AzureRM provider states it is optional.
+  managed_identities = {
+    system_assigned = true
+  }
 }
