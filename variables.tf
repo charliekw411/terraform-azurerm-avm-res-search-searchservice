@@ -147,14 +147,15 @@ variable "hosting_mode" {
   description = "(Optional) Specifies the Hosting Mode, which allows for High Density partitions (that allow for up to 1000 indexes) should be supported. Possible values are `highDensity` or `default`. Defaults to `default`. Changing this forces a new Search Service to be created."
 }
 
-variable "identity" {
+variable "managed_identities" {
   type = object({
-    type = string
+    system_assigned = optional(bool, false)
   })
-  default     = null
-  description = <<-EOT
- - `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Search Service. The only possible value is `SystemAssigned`.
-EOT
+  default     = {}
+  description = <<DESCRIPTION
+  Configurations for managed identities in Azure. At the moment only system assigned identity is supported for this resource.
+  - `system_assigned` - (Optional) A boolean flag indicating whether to enable the system-assigned managed identity. Defaults to `false`.
+DESCRIPTION
 }
 
 variable "local_authentication_enabled" {

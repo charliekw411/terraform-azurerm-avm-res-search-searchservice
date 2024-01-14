@@ -43,11 +43,13 @@ resource "azurerm_search_service" "this" {
   tags                                     = var.tags
 
   dynamic "identity" {
-    for_each = var.identity == null ? [] : [var.identity]
+    for_each = var.managed_identities == {} ? [] : [var.managed_identities]
     content {
-      type = identity.value.type
+      # only SystemAssigned is supported
+      type = identity.value.system_assigned ? "SystemAssigned" : null
     }
   }
+
   dynamic "timeouts" {
     for_each = var.timeouts == null ? [] : [var.timeouts]
     content {
